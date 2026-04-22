@@ -1,0 +1,387 @@
+:root {
+  color: #1d2433;
+  background: #eef2f7;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(238, 242, 247, 0)),
+    #eef2f7;
+}
+
+.topbar {
+  border-bottom: 1px solid #d7deea;
+  background: #ffffff;
+}
+
+.topbar-inner {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 22px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.brand h1 {
+  margin: 0;
+  color: #142033;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.brand p {
+  margin: 7px 0 0;
+  color: #5c687a;
+  font-size: 0.95rem;
+}
+
+.student-badge {
+  min-width: 230px;
+  padding: 10px 12px;
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.student-badge span {
+  display: block;
+  color: #6f7b8d;
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.student-badge strong {
+  display: block;
+  margin-top: 4px;
+  color: #182338;
+  font-size: 0.96rem;
+}
+
+.workspace {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 30px 0 44px;
+}
+
+.panel {
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 14px 36px rgba(32, 45, 73, 0.08);
+}
+
+.toolbar {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #e3e8f0;
+}
+
+.task-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 13px;
+  color: #162033;
+  background: #ffffff;
+  outline: none;
+}
+
+.task-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.primary-button,
+.icon-button {
+  height: 44px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #ffffff;
+  background: #2563eb;
+  font-weight: 700;
+}
+
+.primary-button {
+  padding: 0 16px;
+}
+
+.icon-button {
+  width: 44px;
+  color: #26364f;
+  background: #eaf0f8;
+}
+
+.icon-button:hover {
+  background: #dfe8f4;
+}
+
+.primary-button:hover {
+  background: #1d4ed8;
+}
+
+.error-banner {
+  margin: 16px 18px 0;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #991b1b;
+  background: #fff1f2;
+}
+
+.summary-row {
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #59677b;
+  border-bottom: 1px solid #e3e8f0;
+}
+
+.summary-row strong {
+  color: #172033;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #047857;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.status-error {
+  color: #b91c1c;
+}
+
+.status-error .status-dot {
+  background: #ef4444;
+}
+
+.stat-strip {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(130px, 160px)) 1fr;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #e3e8f0;
+}
+
+.stat-box {
+  min-height: 62px;
+  border: 1px solid #dce4ef;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+}
+
+.stat-box span {
+  display: block;
+  color: #6b7789;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.stat-box strong {
+  display: block;
+  margin-top: 4px;
+  color: #142033;
+  font-size: 1.35rem;
+}
+
+.filters {
+  justify-self: end;
+  min-height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 4px;
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(88px, auto));
+  gap: 4px;
+  background: #ffffff;
+}
+
+.filter-button {
+  min-height: 34px;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: #40506a;
+  background: transparent;
+  font-weight: 700;
+}
+
+.filter-button.active {
+  color: #ffffff;
+  background: #0f766e;
+}
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 10px 18px 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.task-item {
+  min-height: 66px;
+  border: 1px solid #dce4ef;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: #fbfdff;
+}
+
+.toggle-complete {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+.toggle-complete:hover {
+  background: #99f6e4;
+}
+
+.task-content {
+  min-width: 0;
+}
+
+.task-title {
+  margin: 0;
+  color: #152033;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.task-title.completed {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.task-meta {
+  margin: 5px 0 0;
+  color: #6c7788;
+  font-size: 0.86rem;
+}
+
+.delete-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.delete-button:hover {
+  background: #fecaca;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 38px 18px 42px;
+  color: #657286;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .topbar-inner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-badge {
+    min-width: 0;
+  }
+
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-button,
+  .icon-button {
+    width: 100%;
+  }
+
+  .summary-row,
+  .task-item,
+  .stat-strip {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .summary-row {
+    flex-direction: column;
+  }
+
+  .delete-button {
+    width: 100%;
+  }
+
+  .filters {
+    justify-self: stretch;
+    grid-template-columns: 1fr;
+  }
+}

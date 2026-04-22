@@ -1,0 +1,27 @@
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.python-packages/
+.tmp/
+.venv/
+venv/
+instance/
+*.db
+
+# Node
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# OS/editor
+.DS_Store
+Thumbs.db
