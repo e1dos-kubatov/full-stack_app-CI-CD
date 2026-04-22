@@ -35,7 +35,7 @@ Backend читает `DATABASE_URL` из переменных окружения
 
 | Метод | URL | Описание |
 | --- | --- | --- |
-| `GET` | `/api/health` | Проверка состояния API |
+| `GET` | `/api/health` | Проверка состояния API и подключения к базе |
 | `GET` | `/api/data` | Получить все записи |
 | `POST` | `/api/data` | Создать запись, JSON: `{ "title": "..." }` |
 | `PATCH` | `/api/data/<id>` | Обновить запись, JSON: `{ "title": "...", "completed": true }` |
@@ -112,8 +112,12 @@ Workflow находится в `.github/workflows/ci.yml`. Он автомати
 
 1. Клонирует репозиторий.
 2. Устанавливает Python 3.12.
-3. Устанавливает зависимости из `backend/requirements.txt`.
-4. Запускает `python -m pytest -q`.
+3. Поднимает PostgreSQL service container.
+4. Передает `DATABASE_URL` в backend.
+5. Устанавливает зависимости из `backend/requirements.txt`.
+6. Запускает `python -m pytest -q`.
+
+Если GitHub Actions показывает ошибку `account is locked due to a billing issue`, это не ошибка кода. Нужно открыть GitHub account billing/settings и разблокировать Actions; после этого workflow запустится снова.
 
 ## Railway Deployment
 

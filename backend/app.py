@@ -53,6 +53,15 @@ def parse_bool(value):
     return bool(value)
 
 
+def check_database_connection():
+    try:
+        db.session.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        db.session.rollback()
+        return False
+
+
 def ensure_schema(app):
     with app.app_context():
         db.create_all()
@@ -117,7 +126,16 @@ def create_app(test_config=None):
 
     @app.get("/api/health")
     def health():
-        return jsonify({"status": "ok"})
+        database_connected = check_database_connection()
+        return (
+            jsonify(
+                {
+                    "status": "ok" if database_connected else "error",
+                    "database": "connected" if database_connected else "disconnected",
+                }
+            ),
+            200 if database_connected else 503,
+        )
 
     @app.get("/api/data")
     def get_data():
