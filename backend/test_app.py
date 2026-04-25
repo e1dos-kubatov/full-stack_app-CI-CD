@@ -1,5 +1,6 @@
 import pytest
 
+import app as app_module
 from app import create_app, db
 
 
@@ -99,3 +100,35 @@ def test_stats_endpoint(client):
 
     assert response.status_code == 200
     assert response.get_json() == {"total": 2, "completed": 1, "pending": 1}
+
+
+def test_run_with_retries_retries_then_succeeds(monkeypatch):
+    attempts = {"count": 0}
+
+    def operation():
+        attempts["count"] += 1
+        if attempts["count"] < 3:
+            raise RuntimeError("temporary failure")
+        return "ok"
+
+    monkeypatch.setattr(app_module.time, "sleep", lambda _seconds: None)
+
+    result = app_module.run_with_retries(operation, retries=3, delay_seconds=0)
+
+    assert result == "ok"
+    assert attempts["count"] == 3
+
+
+def test_run_with_retries_raises_after_final_attempt(monkeypatch):
+    attempts = {"count": 0}
+
+    def operation():
+        attempts["count"] += 1
+        raise RuntimeError("still failing")
+
+    monkeypatch.setattr(app_module.time, "sleep", lambda _seconds: None)
+
+    with pytest.raises(RuntimeError, match="still failing"):
+        app_module.run_with_retries(operation, retries=2, delay_seconds=0)
+
+    assert attempts["count"] == 2

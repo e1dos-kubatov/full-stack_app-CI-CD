@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime, timezone
 
 from flask import Flask, jsonify, request
@@ -53,6 +54,18 @@ def parse_bool(value):
     return bool(value)
 
 
+def run_with_retries(operation, retries, delay_seconds, on_retry=None):
+    for attempt in range(1, retries + 1):
+        try:
+            return operation()
+        except Exception as exc:
+            if attempt == retries:
+                raise
+            if on_retry:
+                on_retry(attempt, retries, exc)
+            time.sleep(delay_seconds)
+
+
 def check_database_connection():
     try:
         db.session.execute(text("SELECT 1"))
@@ -63,40 +76,56 @@ def check_database_connection():
 
 
 def ensure_schema(app):
-    with app.app_context():
-        db.create_all()
+    retries = int(os.getenv("DB_CONNECT_RETRIES", "10"))
+    delay_seconds = float(os.getenv("DB_CONNECT_DELAY", "1"))
 
-        inspector = inspect(db.engine)
-        if "items" not in inspector.get_table_names():
-            return
+    def init_schema():
+        with app.app_context():
+            db.create_all()
 
-        existing_columns = {column["name"] for column in inspector.get_columns("items")}
-        dialect = db.engine.dialect.name
-        default_false = "false" if dialect == "postgresql" else "0"
-        statements = []
+            inspector = inspect(db.engine)
+            if "items" not in inspector.get_table_names():
+                return
 
-        if "completed" not in existing_columns:
-            statements.append(
-                f"ALTER TABLE items ADD COLUMN completed BOOLEAN NOT NULL DEFAULT {default_false}"
+            existing_columns = {column["name"] for column in inspector.get_columns("items")}
+            dialect = db.engine.dialect.name
+            default_false = "false" if dialect == "postgresql" else "0"
+            updated_at_type = (
+                "TIMESTAMP WITH TIME ZONE" if dialect == "postgresql" else "TIMESTAMP"
             )
+            statements = []
 
-        if "updated_at" not in existing_columns:
-            statements.append("ALTER TABLE items ADD COLUMN updated_at TIMESTAMP")
-
-        if not statements:
-            return
-
-        with db.engine.begin() as connection:
-            for statement in statements:
-                connection.execute(text(statement))
-            if "updated_at" not in existing_columns:
-                connection.execute(
-                    text(
-                        "UPDATE items "
-                        "SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) "
-                        "WHERE updated_at IS NULL"
-                    )
+            if "completed" not in existing_columns:
+                statements.append(
+                    f"ALTER TABLE items ADD COLUMN completed BOOLEAN NOT NULL DEFAULT {default_false}"
                 )
+
+            if "updated_at" not in existing_columns:
+                statements.append(f"ALTER TABLE items ADD COLUMN updated_at {updated_at_type}")
+
+            if not statements:
+                return
+
+            with db.engine.begin() as connection:
+                for statement in statements:
+                    connection.execute(text(statement))
+                if "updated_at" not in existing_columns:
+                    connection.execute(
+                        text(
+                            "UPDATE items "
+                            "SET updated_at = COALESCE(created_at, CURRENT_TIMESTAMP) "
+                            "WHERE updated_at IS NULL"
+                        )
+                    )
+
+    run_with_retries(
+        init_schema,
+        retries=retries,
+        delay_seconds=delay_seconds,
+        on_retry=lambda attempt, total, exc: app.logger.warning(
+            "Database init attempt %s/%s failed: %s", attempt, total, exc
+        ),
+    )
 
 
 def create_app(test_config=None):
