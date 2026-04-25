@@ -70,6 +70,13 @@ Frontend использует переменную `VITE_API_URL`, наприм�
 VITE_API_URL=http://localhost:5000
 ```
 
+Если переменная не задана:
+
+- локально frontend использует `http://localhost:5000`
+- в production frontend пробует обращаться к своему origin, что удобно для reverse proxy и single-domain deploy
+
+Для более надежного деплоя на Netlify/Render/GitHub Pages frontend собран с относительными путями к static assets, поэтому приложение работает не только из корня домена, но и из подкаталога.
+
 Локальный запуск Frontend:
 
 ```bash

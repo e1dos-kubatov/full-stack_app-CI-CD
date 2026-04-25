@@ -5,10 +5,23 @@ import "./App.css";
 const STUDENT_NAME = "Eldos Kubatov";
 const STUDENT_ID = "220505";
 
+const getDefaultApiUrl = () => {
+  if (typeof window === "undefined") {
+    return "http://localhost:5000";
+  }
+
+  const { hostname, origin } = window.location;
+  const isLocalhost =
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+
+  return isLocalhost ? "http://localhost:5000" : origin;
+};
+
 const getApiUrl = () => {
-  const runtimeApiUrl = window.__APP_CONFIG__?.VITE_API_URL;
-  const buildApiUrl = import.meta.env.VITE_API_URL;
-  return (runtimeApiUrl || buildApiUrl || "http://localhost:5000").replace(/\/$/, "");
+  const runtimeApiUrl = window.__APP_CONFIG__?.VITE_API_URL?.trim();
+  const buildApiUrl = import.meta.env.VITE_API_URL?.trim();
+
+  return (runtimeApiUrl || buildApiUrl || getDefaultApiUrl()).replace(/\/$/, "");
 };
 
 function App() {
