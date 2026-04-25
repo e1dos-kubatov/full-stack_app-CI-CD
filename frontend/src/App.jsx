@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Activity, CheckCircle2, Circle, ListTodo, Plus, RefreshCw, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
@@ -22,6 +22,12 @@ const getApiUrl = () => {
   const buildApiUrl = import.meta.env.VITE_API_URL?.trim();
 
   return (runtimeApiUrl || buildApiUrl || getDefaultApiUrl()).replace(/\/$/, "");
+};
+
+const FILTER_LABELS = {
+  all: "Все",
+  open: "Активные",
+  done: "Готовые",
 };
 
 function App() {
@@ -157,138 +163,200 @@ function App() {
     loadItems();
   }, []);
 
+  const connectionStatus = error ? "Ошибка" : isLoading ? "Загрузка" : "Онлайн";
+  const visibleCountLabel = `${visibleItems.length} ${visibleItems.length === 1 ? "запись" : "записей"}`;
+  const overviewItems = [
+    { key: "total", label: "Всего", value: stats.total, icon: ListTodo, tone: "overview-total" },
+    { key: "pending", label: "Активные", value: stats.pending, icon: Circle, tone: "overview-open" },
+    {
+      key: "completed",
+      label: "Готовые",
+      value: stats.completed,
+      icon: CheckCircle2,
+      tone: "overview-done",
+    },
+    {
+      key: "api",
+      label: "API",
+      value: connectionStatus,
+      icon: Activity,
+      tone: error ? "overview-error" : "overview-live",
+    },
+  ];
+
   return (
     <main className="app-shell">
       <header className="topbar">
         <div className="topbar-inner">
           <div className="brand">
+            <span className="eyebrow">Task Workspace</span>
             <h1>Full-Stack CI/CD App</h1>
-            <p>React Frontend + Flask API + PostgreSQL</p>
           </div>
-          <div className="student-badge">
-            <span>Студент</span>
-            <strong>{STUDENT_NAME}</strong>
-            <strong>ID: {STUDENT_ID}</strong>
+          <div className="identity-chip">
+            <span className="identity-icon" aria-hidden="true">
+              <User size={18} />
+            </span>
+            <div className="identity-copy">
+              <span className="identity-label">Студент</span>
+              <strong>{STUDENT_NAME}</strong>
+            </div>
+            <span className="identity-id">ID {STUDENT_ID}</span>
           </div>
         </div>
       </header>
 
       <section className="workspace">
-        <div className="panel">
-          <form className="toolbar" onSubmit={addItem}>
-            <input
-              className="task-input"
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Новая запись"
-              aria-label="Новая запись"
-            />
-            <button className="primary-button" type="submit" disabled={isSaving}>
-              <Plus size={18} aria-hidden="true" />
-              {isSaving ? "Сохранение" : "Добавить"}
-            </button>
-            <button
-              className="icon-button"
-              type="button"
-              onClick={loadItems}
-              disabled={isLoading}
-              aria-label="Обновить"
-              title="Обновить"
-            >
-              <RefreshCw size={18} aria-hidden="true" />
-            </button>
-          </form>
+        <div className="overview-grid" aria-label="Статистика">
+          {overviewItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article className={`overview-tile ${item.tone}`} key={item.key}>
+                <span className="overview-icon" aria-hidden="true">
+                  <Icon size={18} />
+                </span>
+                <span className="overview-label">{item.label}</span>
+                <strong className="overview-value">{item.value}</strong>
+              </article>
+            );
+          })}
+        </div>
 
-          {error ? <div className="error-banner">{error}</div> : null}
+        <div className="dashboard-layout">
+          <div className="main-column">
+            <section className="panel composer-panel">
+              <div className="panel-header">
+                <div>
+                  <span className="panel-kicker">Ввод</span>
+                  <h2>Новая запись</h2>
+                </div>
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={loadItems}
+                  disabled={isLoading}
+                  aria-label="Обновить"
+                  title="Обновить"
+                >
+                  <RefreshCw size={18} aria-hidden="true" />
+                </button>
+              </div>
 
-          <div className="summary-row">
-            <span>
-              Всего записей: <strong>{stats.total}</strong>
-            </span>
-            <span className={`status ${error ? "status-error" : ""}`}>
-              <span className="status-dot" aria-hidden="true" />
-              {error ? "Проверьте API" : isLoading ? "Загрузка" : "API подключен"}
-            </span>
-          </div>
+              <form className="composer-form" onSubmit={addItem}>
+                <input
+                  className="task-input"
+                  type="text"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Новая запись"
+                  aria-label="Новая запись"
+                />
+                <button className="primary-button" type="submit" disabled={isSaving}>
+                  <Plus size={18} aria-hidden="true" />
+                  {isSaving ? "Сохранение" : "Добавить"}
+                </button>
+              </form>
+            </section>
 
-          <div className="stat-strip" aria-label="Статистика записей">
-            <div className="stat-box">
-              <span>Активные</span>
-              <strong>{stats.pending}</strong>
-            </div>
-            <div className="stat-box">
-              <span>Готовые</span>
-              <strong>{stats.completed}</strong>
-            </div>
-            <div className="filters" aria-label="Фильтр">
-              <button
-                className={filter === "all" ? "filter-button active" : "filter-button"}
-                type="button"
-                onClick={() => setFilter("all")}
-              >
-                Все
-              </button>
-              <button
-                className={filter === "open" ? "filter-button active" : "filter-button"}
-                type="button"
-                onClick={() => setFilter("open")}
-              >
-                Активные
-              </button>
-              <button
-                className={filter === "done" ? "filter-button active" : "filter-button"}
-                type="button"
-                onClick={() => setFilter("done")}
-              >
-                Готовые
-              </button>
-            </div>
-          </div>
-
-          {visibleItems.length > 0 ? (
-            <ul className="task-list">
-              {visibleItems.map((item) => (
-                <li className="task-item" key={item.id}>
-                  <button
-                    className="toggle-complete"
-                    type="button"
-                    onClick={() => toggleItem(item)}
-                    aria-label={item.completed ? "Вернуть в активные" : "Отметить готовым"}
-                    title={item.completed ? "Вернуть в активные" : "Отметить готовым"}
-                  >
-                    {item.completed ? (
-                      <CheckCircle2 size={22} aria-hidden="true" />
-                    ) : (
-                      <Circle size={22} aria-hidden="true" />
-                    )}
-                  </button>
-                  <div className="task-content">
-                    <p className={item.completed ? "task-title completed" : "task-title"}>
-                      {item.title}
-                    </p>
-                    <p className="task-meta">
-                      #{item.id}
-                      {item.created_at ? ` | ${new Date(item.created_at).toLocaleString()}` : ""}
-                    </p>
+            <section className="panel list-panel">
+              <div className="panel-header list-header">
+                <div className="list-heading">
+                  <span className="panel-kicker">Список</span>
+                  <div className="list-heading-row">
+                    <h2>Записи</h2>
+                    <span className="count-badge">{visibleCountLabel}</span>
                   </div>
-                  <button
-                    className="delete-button"
-                    type="button"
-                    onClick={() => deleteItem(item.id)}
-                    aria-label={`Удалить ${item.title}`}
-                    title="Удалить"
-                  >
-                    <Trash2 size={18} aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="empty-state">
-              {isLoading ? "Загрузка данных..." : "Нет записей для выбранного фильтра."}
-            </p>
-          )}
+                </div>
+
+                <div className="filters" aria-label="Фильтр">
+                  {Object.entries(FILTER_LABELS).map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={filter === value ? "filter-button active" : "filter-button"}
+                      type="button"
+                      onClick={() => setFilter(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {error ? <div className="error-banner">{error}</div> : null}
+
+              {visibleItems.length > 0 ? (
+                <ul className="task-list">
+                  {visibleItems.map((item) => (
+                    <li className="task-item" key={item.id}>
+                      <button
+                        className="toggle-complete"
+                        type="button"
+                        onClick={() => toggleItem(item)}
+                        aria-label={item.completed ? "Вернуть в активные" : "Отметить готовым"}
+                        title={item.completed ? "Вернуть в активные" : "Отметить готовым"}
+                      >
+                        {item.completed ? (
+                          <CheckCircle2 size={22} aria-hidden="true" />
+                        ) : (
+                          <Circle size={22} aria-hidden="true" />
+                        )}
+                      </button>
+                      <div className="task-content">
+                        <p className={item.completed ? "task-title completed" : "task-title"}>
+                          {item.title}
+                        </p>
+                        <p className="task-meta">
+                          #{item.id}
+                          {item.created_at ? ` | ${new Date(item.created_at).toLocaleString()}` : ""}
+                        </p>
+                      </div>
+                      <button
+                        className="delete-button"
+                        type="button"
+                        onClick={() => deleteItem(item.id)}
+                        aria-label={`Удалить ${item.title}`}
+                        title="Удалить"
+                      >
+                        <Trash2 size={18} aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="empty-state">
+                  <span className="empty-icon" aria-hidden="true">
+                    <ListTodo size={22} />
+                  </span>
+                  <p>{isLoading ? "Загрузка данных..." : "Нет записей для выбранного фильтра."}</p>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <aside className="panel side-panel">
+            <div className="side-section">
+              <span className="panel-kicker">Профиль</span>
+              <div className="side-value-group">
+                <strong>{STUDENT_NAME}</strong>
+                <span>ID {STUDENT_ID}</span>
+              </div>
+            </div>
+
+            <div className="side-section">
+              <span className="panel-kicker">Подключение</span>
+              <span className={`status-pill ${error ? "status-pill-error" : ""}`}>
+                {connectionStatus}
+              </span>
+              <code className="endpoint-text">{apiUrl}</code>
+            </div>
+
+            <div className="side-section">
+              <span className="panel-kicker">Текущий фильтр</span>
+              <div className="side-value-group">
+                <strong>{FILTER_LABELS[filter]}</strong>
+                <span>{visibleCountLabel}</span>
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
     </main>
