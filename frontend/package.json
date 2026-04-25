@@ -15,5 +15,7 @@
     "react-dom": "19.2.5",
     "lucide-react": "1.8.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "devops-fullstack": "file:tools/devops-fullstack"
+  }
 }

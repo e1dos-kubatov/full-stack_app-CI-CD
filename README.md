@@ -77,6 +77,25 @@ VITE_API_URL=http://localhost:5000
 
 Для более надежного деплоя на Netlify/Render/GitHub Pages frontend собран с относительными путями к static assets, поэтому приложение работает не только из корня домена, но и из подкаталога.
 
+### Netlify
+
+В репозиторий добавлен `netlify.toml`:
+
+```toml
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+```
+
+Если в Netlify UI ранее был сохранен кастомный Build command, он имеет приоритет над `netlify.toml`. Для этого проекта в Netlify UI нужно указать:
+
+- Base directory: `frontend`
+- Build command: `npm run build`
+- Publish directory: `dist`
+
+Дополнительно в `frontend` установлен локальный build-bin `devops-fullstack`, чтобы старый command из Netlify UI не падал с `command not found`.
+
 Локальный запуск Frontend:
 
 ```bash
