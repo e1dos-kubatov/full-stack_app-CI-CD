@@ -31,10 +31,17 @@ full-stack_app-CI-CD/
 
 Backend читает `DATABASE_URL` из переменных окружения. Если переменной нет, локально используется SQLite, чтобы тесты и разработка запускались без отдельной БД.
 
+Easy deploy note:
+
+- If `DATABASE_URL` is set, backend uses PostgreSQL.
+- If `DATABASE_URL` is empty and `SQLITE_PATH` is set, backend uses SQLite at that file path.
+- If neither variable is set, backend falls back to SQLite automatically.
+
 Для облачных баз данных backend также поддерживает:
 
 - `DB_CONNECT_RETRIES` - число повторных попыток подключения при старте
 - `DB_CONNECT_DELAY` - задержка между попытками в секундах
+- `SQLITE_PATH` - путь к SQLite-файлу для простого deploy без отдельной БД
 
 Эндпоинты:
 
@@ -149,6 +156,57 @@ Workflow находится в `.github/workflows/ci.yml`. Он автомати
 6. Запускает `python -m pytest -q`.
 
 Если GitHub Actions показывает ошибку `account is locked due to a billing issue`, это не ошибка кода. Нужно открыть GitHub account billing/settings и разблокировать Actions; после этого workflow запустится снова.
+
+## Easy deploy without PostgreSQL
+
+If you want the simplest deploy path, this repo now supports:
+
+- Frontend on Netlify
+- Backend on Render
+- SQLite inside the backend service
+
+This is easier than provisioning a separate PostgreSQL service, but it is not the same architecture as the original lab requirement.
+
+### Backend on Render with SQLite
+
+This repo includes [render.yaml](C:/Users/Admin/full-stack_app-CI-CD/render.yaml) for the backend service.
+
+Render backend settings:
+
+- Root directory: `backend`
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn --bind 0.0.0.0:$PORT app:app`
+- Health check path: `/api/health`
+
+Environment variables for the easy SQLite deploy:
+
+- `SQLITE_PATH=./instance/app.db`
+- `DB_CONNECT_RETRIES=3`
+- `DB_CONNECT_DELAY=1`
+
+You do not need `DATABASE_URL` for this mode.
+
+Important:
+
+- SQLite on a normal web service filesystem can be reset after redeploy/restart.
+- If you want SQLite data to persist, attach a persistent disk in Render and then set:
+
+```text
+SQLITE_PATH=/var/data/app.db
+```
+
+### Frontend on Netlify
+
+The frontend is already configured by [netlify.toml](C:/Users/Admin/full-stack_app-CI-CD/netlify.toml).
+
+Set these values in Netlify:
+
+- Base directory: `frontend`
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Environment variable: `VITE_API_URL=https://your-render-backend.onrender.com`
+
+After the backend is live, paste its public URL into `VITE_API_URL` and redeploy the frontend.
 
 ## Railway Deployment
 

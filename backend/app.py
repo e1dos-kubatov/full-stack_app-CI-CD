@@ -1,11 +1,13 @@
 import os
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
+from sqlalchemy.engine import make_url
 
 
 db = SQLAlchemy()
@@ -40,6 +42,36 @@ def normalize_database_url(database_url):
     if database_url and database_url.startswith("postgres://"):
         return database_url.replace("postgres://", "postgresql://", 1)
     return database_url
+
+
+def sqlite_url_from_path(sqlite_path):
+    resolved_path = Path(sqlite_path).expanduser().resolve()
+    return f"sqlite:///{resolved_path.as_posix()}"
+
+
+def resolve_database_url():
+    database_url = normalize_database_url(os.getenv("DATABASE_URL"))
+    if database_url:
+        return database_url
+
+    sqlite_path = os.getenv("SQLITE_PATH", "").strip()
+    if sqlite_path:
+        return sqlite_url_from_path(sqlite_path)
+
+    return "sqlite:///app.db"
+
+
+def ensure_sqlite_directory(database_url):
+    if not database_url:
+        return
+
+    url = make_url(database_url)
+    if url.drivername != "sqlite" or not url.database or url.database == ":memory:":
+        return
+
+    parent_dir = Path(url.database).parent
+    if str(parent_dir) not in {"", "."}:
+        parent_dir.mkdir(parents=True, exist_ok=True)
 
 
 def serialize_datetime(value):
@@ -132,9 +164,8 @@ def create_app(test_config=None):
     app = Flask(__name__)
     CORS(app)
 
-    database_url = normalize_database_url(os.getenv("DATABASE_URL"))
     app.config.update(
-        SQLALCHEMY_DATABASE_URI=database_url or "sqlite:///app.db",
+        SQLALCHEMY_DATABASE_URI=resolve_database_url(),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         JSON_SORT_KEYS=False,
     )
@@ -142,6 +173,7 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
+    ensure_sqlite_directory(app.config["SQLALCHEMY_DATABASE_URI"])
     db.init_app(app)
 
     @app.get("/")

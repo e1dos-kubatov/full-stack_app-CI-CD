@@ -132,3 +132,29 @@ def test_run_with_retries_raises_after_final_attempt(monkeypatch):
         app_module.run_with_retries(operation, retries=2, delay_seconds=0)
 
     assert attempts["count"] == 2
+
+
+def test_resolve_database_url_prefers_database_url(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgres://user:pass@localhost:5432/fullstack_app")
+    monkeypatch.setenv("SQLITE_PATH", "ignored.db")
+
+    assert (
+        app_module.resolve_database_url()
+        == "postgresql://user:pass@localhost:5432/fullstack_app"
+    )
+
+
+def test_resolve_database_url_uses_sqlite_path(monkeypatch, tmp_path):
+    sqlite_file = tmp_path / "render-data" / "app.db"
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("SQLITE_PATH", str(sqlite_file))
+
+    assert app_module.resolve_database_url() == app_module.sqlite_url_from_path(sqlite_file)
+
+
+def test_ensure_sqlite_directory_creates_parent_directory(tmp_path):
+    sqlite_file = tmp_path / "nested" / "data" / "app.db"
+
+    app_module.ensure_sqlite_directory(app_module.sqlite_url_from_path(sqlite_file))
+
+    assert sqlite_file.parent.exists()

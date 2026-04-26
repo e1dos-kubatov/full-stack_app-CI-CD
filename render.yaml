@@ -1,0 +1,15 @@
+services:
+  - type: web
+    runtime: python
+    name: fullstack-backend-sqlite
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
+    healthCheckPath: /api/health
+    envVars:
+      - key: SQLITE_PATH
+        value: ./instance/app.db
+      - key: DB_CONNECT_RETRIES
+        value: 3
+      - key: DB_CONNECT_DELAY
+        value: 1
